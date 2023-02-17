@@ -20,7 +20,7 @@ namespace CsharpWebScraping
     
         static void Main(string[] args)
         {
-            List<Ads> addList = new List<Ads>(new Ads[1000]); 
+            Ads[] addList = new Ads[1000]; 
             string urlB = "https://www.olx.ro/imobiliare/apartamente-garsoniere-de-inchiriat/oradea/?currency=EUR&page=";
             string toAdd = "&search%5Bfilter_float_price:from%5D=150&search%5Bfilter_float_price:to%5D=300&search%5Bfilter_float_m:from%5D=10&search%5Bfilter_float_m:to%5D=100";
             //URL has 2 parts, first is the actual URL and the second are the filters
@@ -29,6 +29,9 @@ namespace CsharpWebScraping
             var html = httpClient.GetStringAsync(urlB+toAdd).Result;
             HtmlDocument htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(html);
+
+            string test = "https://www.storia.ro/ro/oferta/apartament-de-nchiriat-3-camere-decomandat-milcovului-rogerius-IDw2Y9.html";
+            Console.WriteLine(test.Contains("Apartament de închiriat, 3 camere, decomandat, Milcovului - Rogerius"));
 
             var pagenumber = htmlDocument.DocumentNode.Descendants("li").Where(node =>node.GetAttributeValue("class", "").Equals("  pagination-item  css-ps94ux")).ToList();
             int max = int.Parse(pagenumber[pagenumber.Count-1].InnerText);//get the number of pagers
@@ -50,10 +53,7 @@ namespace CsharpWebScraping
                 int preN = n;
                 for(int i=0;i<adsTitle.Count;i++)//Adding the adds to my struct
                 {
-                    var temp = addList[i+preN];
-                    temp.title = adsTitle[i].InnerText;
-                    addList[i+preN] = temp;
-
+                    addList[i+preN].title = adsTitle[i].InnerText;
                 }
                 int m=0;
                 for(int i=0;i<adsPrice.Count;i++)
@@ -68,9 +68,8 @@ namespace CsharpWebScraping
                             index++;
                         }
                     }
-                    var temp = addList[i+preN];
-                    temp.price = int.Parse(word);
-                    addList[i+preN] = temp;
+
+                    addList[i+preN].price = int.Parse(word);
                     m=i;
                 }
                 for(int i=0;i<adsSpace.Count;i++)
@@ -86,10 +85,13 @@ namespace CsharpWebScraping
                         }
                         else j = adsSpace[i].InnerText.Length;
                     }
-                    var temp = addList[i+preN];
-                    temp.metri = int.Parse(word);
-                    addList[i+preN] = temp;
+                    addList[i+preN].metri = int.Parse(word);
                 }
+
+
+
+
+
                 List <string> links = new List<string>();
                 foreach (HtmlNode link in htmlDocument.DocumentNode.SelectNodes("//a[@href]"))//I'm getting all the links from that page
                 {
@@ -111,17 +113,18 @@ namespace CsharpWebScraping
                         if(word[0] == '/')
                         {
                             nWord = "https://www.olx.ro"+word;// most of the url don't have the www.
-                            var temp = addList[i+preN];
-                            temp.url = nWord;
-                            addList[i+preN] = temp;
+
+                            addList[ind+preN].url = nWord;
+                            ind++;
                         }
                         else
                         {
-                            var temp = addList[i+preN];
-                            temp.url = links[i];
-                            addList[i+preN] = temp;
+                            addList[ind+preN].url = links[i];
+                            ind++;
+
+
                         }
-                        ind++;
+                    
                     }
                 }
                 preN+=m;
@@ -147,6 +150,10 @@ namespace CsharpWebScraping
                 }
             }
 
+            Ads[] tem = new Ads[2000];
+            tem = addList.Distinct().ToArray();
+            addList = tem; 
+            n=addList.Count()-1;
             using (var workbook = new XLWorkbook())//exporting data to an excel file
                 {
                     var workSheet = workbook.Worksheets.Add("Anunturi");//Creating a worksheet  and giving cells a name
