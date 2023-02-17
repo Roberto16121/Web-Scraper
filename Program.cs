@@ -30,8 +30,6 @@ namespace CsharpWebScraping
             HtmlDocument htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(html);
 
-            string test = "https://www.storia.ro/ro/oferta/apartament-de-nchiriat-3-camere-decomandat-milcovului-rogerius-IDw2Y9.html";
-            Console.WriteLine(test.Contains("Apartament de închiriat, 3 camere, decomandat, Milcovului - Rogerius"));
 
             var pagenumber = htmlDocument.DocumentNode.Descendants("li").Where(node =>node.GetAttributeValue("class", "").Equals("  pagination-item  css-ps94ux")).ToList();
             int max = int.Parse(pagenumber[pagenumber.Count-1].InnerText);//get the number of pagers
